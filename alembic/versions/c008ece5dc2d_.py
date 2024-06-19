@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 4c8713661cd8
+Revision ID: c008ece5dc2d
 Revises: 
-Create Date: 2024-06-19 13:49:36.608976
+Create Date: 2024-06-19 15:57:14.129824
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4c8713661cd8'
+revision: str = 'c008ece5dc2d'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -41,15 +41,15 @@ def upgrade() -> None:
     sa.Column('message_id', sa.Integer(), nullable=False),
     sa.Column('chat_id', sa.Integer(), nullable=False),
     sa.Column('from_user', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc',now())"), nullable=False),
-    sa.Column('edit_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc',now())"), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('edit_at', sa.DateTime(), nullable=False),
     sa.Column('text_message', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['chat_id'], ['chat.id'], ),
     sa.ForeignKeyConstraint(['from_user'], ['user.id'], ),
     sa.PrimaryKeyConstraint('message_id')
     )
     op.create_table('telegramuser',
-    sa.Column('telegram_id', sa.Integer(), nullable=False),
+    sa.Column('telegram_user_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('chat_id', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('user_id')

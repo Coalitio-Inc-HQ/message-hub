@@ -31,6 +31,6 @@ class MessageORM(Base):
     message_id:Mapped[int] = mapped_column(primary_key=True)
     chat_id:Mapped[int] = mapped_column(ForeignKey("chat.id"))
     from_user:Mapped[int] = mapped_column(ForeignKey("user.id"))
-    created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc',now())"))
-    edit_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc',now())"))
+    created_at: Mapped[datetime]
+    edit_at: Mapped[datetime]
     text_message:Mapped[str|None]
