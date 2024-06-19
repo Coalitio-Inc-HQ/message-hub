@@ -6,6 +6,7 @@ from datetime import datetime
 class Base(DeclarativeBase):
     pass
 
+
 class UserORM(Base):
     __tablename__="user"
     id: Mapped[int]=mapped_column(primary_key=True)
@@ -24,6 +25,7 @@ class ChatORM(Base):
     id:Mapped[int]=mapped_column(primary_key=True)
     name: Mapped[str]=mapped_column(String(256))
 
+
 class MessageORM(Base):
     __tablename__="message"
     message_id:Mapped[int] = mapped_column(primary_key=True)
@@ -32,4 +34,3 @@ class MessageORM(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc',now())"))
     edit_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc',now())"))
     text_message:Mapped[str|None]
-
