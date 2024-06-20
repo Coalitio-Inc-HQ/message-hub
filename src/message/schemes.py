@@ -2,9 +2,13 @@ from pydantic import BaseModel,Field
 from datetime import datetime
 # from typing import Optional
 
+class ClientServerDTO(BaseModel):
+    id: int
+    url:str
+
 class UserDTO(BaseModel):
     id: int
-    from_table: str =Field(max_length=10)
+    client_server_id: int
 
 class ChatUsersDTO(BaseModel):
     user_id:int

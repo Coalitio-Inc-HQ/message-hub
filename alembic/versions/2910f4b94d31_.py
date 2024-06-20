@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: c008ece5dc2d
+Revision ID: 2910f4b94d31
 Revises: 
-Create Date: 2024-06-19 15:57:14.129824
+Create Date: 2024-06-20 11:37:15.002873
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c008ece5dc2d'
+revision: str = '2910f4b94d31'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,9 +25,15 @@ def upgrade() -> None:
     sa.Column('name', sa.String(length=256), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('client_server',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('url', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('from_table', sa.String(length=10), nullable=False),
+    sa.Column('client_server_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['client_server_id'], ['client_server.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('chatusers',
@@ -63,5 +69,6 @@ def downgrade() -> None:
     op.drop_table('message')
     op.drop_table('chatusers')
     op.drop_table('user')
+    op.drop_table('client_server')
     op.drop_table('chat')
     # ### end Alembic commands ###
