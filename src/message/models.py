@@ -6,25 +6,25 @@ from datetime import datetime
 class Base(DeclarativeBase):
     pass
 
+class ClientServerORM(Base):
+    __tablename__="client_server"
+    id: Mapped[int]=mapped_column(primary_key=True)
+    url:Mapped[str]
 
 class UserORM(Base):
     __tablename__="user"
     id: Mapped[int]=mapped_column(primary_key=True)
-    from_table: Mapped[int]=mapped_column(String(10))
+    client_server_id: Mapped[int]=mapped_column(ForeignKey("client_server.id"))
 
 class ChatUsersORM(Base):
     __tablename__="chatusers"
     user_id:Mapped[int]=mapped_column(ForeignKey("user.id"),primary_key=True)
     chat_id:Mapped[int]=mapped_column(ForeignKey("chat.id"),primary_key=True)
-    __table_args__={
-
-    }
 
 class ChatORM(Base):
     __tablename__="chat"
     id:Mapped[int]=mapped_column(primary_key=True)
     name: Mapped[str]=mapped_column(String(256))
-
 
 class MessageORM(Base):
     __tablename__="message"
