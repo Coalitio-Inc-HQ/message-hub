@@ -1,29 +1,26 @@
 import asyncio
 import logging
-import os
-from dotenv import load_dotenv
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 
-load_dotenv()
-token = os.environ['TELEGRAM_BOT_TOKEN']
+from config_reader import config
 
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
-# Объект бота
-bot = Bot(token=token)
+
+# Для записей с типом Secret* необходимо 
+# вызывать метод get_secret_value(), 
+# чтобы получить настоящее содержимое вместо '*******'
+bot = Bot(token=config.telegram_bot_token.get_secret_value())
+
 # Диспетчер
 dp = Dispatcher()
 
 # Хэндлер на команду /start
-
-
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     await message.answer("Hello!")
-
-# Запуск процесса поллинга новых апдейтов
-
 
 @dp.message(Command("answer"))
 async def cmd_answer(message: types.Message):
@@ -35,6 +32,7 @@ async def cmd_reply(message: types.Message):
     await message.reply('Это ответ с "ответом"')
 
 
+# Запуск процесса поллинга новых апдейтов
 async def main():
     await dp.start_polling(bot)
 
