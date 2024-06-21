@@ -9,7 +9,7 @@ from alembic import context
 
 from src.settings import settings
 
-from src.message.models import Base as MessageBase, ChatORM, UserORM, MessageORM, ChatUsersORM
+from src.app.models import Base as MessageBase, ChatORM, UserORM, MessageORM, ChatUsersORM
 from src.telegram_bot.models import Base as TelegramBase, TelegramUserORM
 
 # this is the Alembic Config object, which provides
