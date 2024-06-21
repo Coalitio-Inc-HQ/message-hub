@@ -1,6 +1,4 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean, CheckConstraint, text, ForeignKey, JSON
 
 
 class Base(DeclarativeBase):
