@@ -2,7 +2,6 @@ from sqlalchemy import select, insert, text, func, bindparam, update
 from .models import UserORM, ChatUsersORM, ChatORM, MessageORM, ManadgerORM, PlatformORM
 from src.database import session_factory
 from .schemes import ChatDTO, UserDTO, MessageDTO, ChatUsersDTO, ClientServerDTO, ManadgerDTO, PlatformDTO
-import copy
 
 
 async def platform_registration(name: str) -> PlatformDTO:
