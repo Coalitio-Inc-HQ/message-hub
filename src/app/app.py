@@ -16,14 +16,15 @@ def check_platform(func):
         else:
             raise HTTPException(
                 status_code=400, detail="Invalid platform name")
+
     return inner
 
 
 @app.post("/platform_registration")
 @check_platform
 async def register_platform(platform_name: str):
-    plaform = await platform_registration(f"{platform_name}")
-    print(plaform.__dict__)
+    platform = await platform_registration(f"{platform_name}")
+    print(platform.__dict__)
     return {"status": "ok"}
 
 
