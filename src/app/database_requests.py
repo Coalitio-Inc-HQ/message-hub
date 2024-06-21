@@ -132,5 +132,5 @@ async def create_user_from_bot(platform_id: int) -> ChatUsersDTO:
 
 async def get_platform_id_by_platform_name(platform_name: str) -> int:
     async with session_factory() as session:
-        res = await session.execute(select(PlatformORM).where(PlatformORM.platform_name == platform_name))
+        res = await session.execute(select(PlatformORM.id).where(PlatformORM.name == platform_name))
         return res.scalar()
