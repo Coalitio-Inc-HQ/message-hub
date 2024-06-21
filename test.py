@@ -78,5 +78,5 @@ async def test():
     await test_database_requests_from_tele_bot()
     await test_database_requests_from_massage()
 
-#asyncio.run(clear_db())
+# asyncio.run(clear_db())
 asyncio.run(test())
