@@ -75,7 +75,7 @@ async def get_chats_by_user(user_id: int) -> list[ChatDTO]:
     """
     async with session_factory() as session:
         cte = select(ChatUsersORM.chat_id).where(
-            ChatUsersORM.user_id == user_id).cte()
+            ChatUsersORM.user_id == user_id).subquery()
         sel = select(ChatORM).where(ChatORM.id.in_(cte))
         res_orm = (await session.execute(sel)).scalars().all()
         res_dto = [ChatDTO.model_validate(
