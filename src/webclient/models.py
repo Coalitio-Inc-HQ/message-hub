@@ -8,7 +8,7 @@ class Base(DeclarativeBase):
 
 
 class WebUserORM(Base):
-    __tablename__ = "webuser"
+    __tablename__ = "web_user"
     login: Mapped[str] = mapped_column(len=256)
     hash_password: Mapped[str] = mapped_column(len=1000)
     user_id: Mapped[int] = mapped_column(primary_key=True)
