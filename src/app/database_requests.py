@@ -101,6 +101,10 @@ async def get_messges_from_chat(chat_id: int, count) -> list[MessageDTO]:
 
 
 async def get_platform_by_platform_name(platform_name: str) -> PlatformDTO:
+    """
+    Получает платформу по её названию.
+    Возращяет PlatformDTO(id, name).
+    """
     async with session_factory() as session:
         res = await session.execute(select(PlatformORM).where(PlatformORM.name == platform_name))
         sc_res = res.scalar_one_or_none()
@@ -111,6 +115,10 @@ async def get_platform_by_platform_name(platform_name: str) -> PlatformDTO:
 
 
 async def get_all_platform() -> list[PlatformDTO]:
+    """
+    Получает все платформы.
+    Возращяет PlatformDTO(id, name).
+    """
     async with session_factory() as session:
         res = await session.execute(select(PlatformORM))
         res_orm = res.scalars()
@@ -131,22 +139,22 @@ async def get_users_by_chat_id(chat_id: int) -> list[UserDTO]:
             row, from_attributes=True) for row in res_orm]
         return res_dto
 
-"""
-temp
-"""
-
-
 async def create_menedger_user(platform_id: int) -> UserDTO:
     """
     Регестрирует нового пользователя с клиентсеого сервера, и добавлет его в списк распределения ботов.
     Возаращяет: UserDTO(id,platform_id).
     """
     async with session_factory() as session:
-        res = await session.execute(insert(UserORM).returning(UserORM.id).values(platform_id=platform_id))
-        res = await session.execute(insert(ManadgerORM).returning(ManadgerORM.user_id).values(user_id=res.scalar(), number_of_linked_bots=0))
+        cte = insert(UserORM).returning(UserORM.id.label("user_id")).values(platform_id=platform_id).cte()
+        cte_sel = select(cte,0)
+        stmt = insert(ManadgerORM).from_select(select=cte_sel,names=["user_id","number_of_linked_bots"]).returning(ManadgerORM.user_id)
+        res = await session.execute(stmt)
         await session.commit()
         return UserDTO(id=res.scalar(),  platform_id=platform_id)
 
+"""
+temp
+"""
 
 async def create_user_from_bot(platform_id: int) -> ChatUsersDTO:
     """
