@@ -66,8 +66,16 @@ async def test_database_requests_from_massage():
     print(menedger)
     user_bot = await create_user_from_bot(platform_id=platform.id)
     print(user_bot)
-    platform_id = await get_platform_id_by_platform_name(platform.name)
-    print(platform_id)
+    platform = await get_platform_by_platform_name(platform.name)
+    print(platform)
+    platform1 = await get_platform_by_platform_name("asdasd")
+    print(platform1)
+    platforms = await get_all_platform()
+    for row in platforms:
+        print(row)
+    users_from_chat = await get_users_by_chat_id(chat_id=chat.id)
+    for row in users_from_chat:
+        print(row)
 
 
 async def test():

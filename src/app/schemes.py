@@ -35,7 +35,7 @@ class ChatDTO(BaseModel):
 
 
 class MessageDTO(BaseModel):
-    id: int | None
+    id: int | None = None
     chat_id: int
     creator: int
     created_at: datetime
