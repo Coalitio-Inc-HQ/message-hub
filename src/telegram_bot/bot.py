@@ -10,7 +10,7 @@ from aiogram.types import Message
 
 from pydantic import BaseModel, Field, HttpUrl
 
-from config_reader import config
+from .config_reader import config
 from src.app.schemes import MessageDTO
 
 
@@ -21,8 +21,10 @@ class CommandUrlDTO(BaseModel):
 
 # Определение команд и URL в виде списка Pydantic-моделей
 COMMAND_URLS = [
-    CommandUrlDTO(command='/register_server', url='http://127.0.0.1:8000/platform_registration'),
-    CommandUrlDTO(command='/register_user', url='http://127.0.0.1:8000/create_user_from_bot')
+    CommandUrlDTO(command='/register_server',
+                  url='http://127.0.0.1:8000/platform_registration'),
+    CommandUrlDTO(command='/register_user',
+                  url='http://127.0.0.1:8000/create_user_from_bot')
 ]
 
 # Включаем логирование, чтобы не пропустить важные сообщения
@@ -48,7 +50,8 @@ async def register_server_command(message: Message):
         Обрабатывает команду /register_server
     """
     print(message.text)
-    command_url = next((cmd.url for cmd in COMMAND_URLS if cmd.command == '/register_server'), None)
+    command_url = next(
+        (cmd.url for cmd in COMMAND_URLS if cmd.command == '/register_server'), None)
     print(command_url)
     await forward_message_to_fastapi(message.text, command_url)
     await message.answer("registration")
@@ -60,7 +63,8 @@ async def register_user_command(message: Message):
         Обрабатывает команду /register_user
     """
     print(message.text)
-    command_url = next((cmd.url for cmd in COMMAND_URLS if cmd.command == '/register_user'), None)
+    command_url = next(
+        (cmd.url for cmd in COMMAND_URLS if cmd.command == '/register_user'), None)
     print(command_url)
     await forward_message_to_fastapi(message.text, command_url)
     await message.answer("register user")

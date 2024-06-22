@@ -3,6 +3,8 @@ from .models import UserORM, ChatUsersORM, ChatORM, MessageORM, ManadgerORM, Pla
 from src.database import session_factory
 from .schemes import ChatDTO, UserDTO, MessageDTO, ChatUsersDTO, ClientServerDTO, ManadgerDTO, PlatformDTO
 
+import datetime
+
 
 async def platform_registration(name: str) -> PlatformDTO:
     """
@@ -60,7 +62,10 @@ async def save_messege(message: MessageDTO) -> MessageDTO:
     Возвращяет: MessageDTO(id,chat_id,creator,created_at,edit_at,text_message).
     """
     async with session_factory() as session:
-        res = await session.execute(insert(MessageORM).returning(MessageORM.id).values(chat_id=message.chat_id, creator=message.creator, created_at=message.created_at, edit_at=message.edit_at, text_message=message.text_message))
+        message.created_at = message.created_at.astimezone(
+            datetime.timezone.utc)
+        message.edit_at = message.edit_at.astimezone(datetime.timezone.utc)
+        res = await session.execute(insert(MessageORM).returning(MessageORM.id).values(chat_id=message.chat_id, creator=message.creator, created_at=message.created_at.replace(tzinfo=None), edit_at=message.edit_at.replace(tzinfo=None), text_message=message.text_message))
         await session.commit()
         result = message.copy()
         result.id = res.scalar()
@@ -95,6 +100,37 @@ async def get_messges_from_chat(chat_id: int, count) -> list[MessageDTO]:
         return res_dto
 
 
+async def get_platform_by_platform_name(platform_name: str) -> PlatformDTO:
+    async with session_factory() as session:
+        res = await session.execute(select(PlatformORM).where(PlatformORM.name == platform_name))
+        sc_res = res.scalar_one_or_none()
+        if sc_res:
+            return PlatformDTO.model_validate(sc_res, from_attributes=True)
+        else:
+            return None
+
+
+async def get_all_platform() -> list[PlatformDTO]:
+    async with session_factory() as session:
+        res = await session.execute(select(PlatformORM))
+        res_orm = res.scalars()
+        res_dto = [PlatformDTO.model_validate(
+            row, from_attributes=True) for row in res_orm]
+        return res_dto
+
+
+async def get_users_by_chat_id(chat_id: int) -> list[UserDTO]:
+    """
+    Получает всех пользователей чата.
+    Возаращяет: [UserDTO(id,platform_id)].
+    """
+    async with session_factory() as session:
+        res = await session.execute(select(UserORM).join(ChatUsersORM).where(ChatUsersORM.chat_id == chat_id))
+        res_orm = res.scalars()
+        res_dto = [UserDTO.model_validate(
+            row, from_attributes=True) for row in res_orm]
+        return res_dto
+
 """
 temp
 """
@@ -128,9 +164,3 @@ async def create_user_from_bot(platform_id: int) -> ChatUsersDTO:
 
         await session.commit()
         return ChatUsersDTO(user_id=user_id, chat_id=chat_id)
-
-
-async def get_platform_id_by_platform_name(platform_name: str) -> int:
-    async with session_factory() as session:
-        res = await session.execute(select(PlatformORM.id).where(PlatformORM.name == platform_name))
-        return res.scalar()
