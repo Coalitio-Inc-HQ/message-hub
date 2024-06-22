@@ -1,6 +1,6 @@
 from src.telegram_bot.bot import bot
 from enum import Enum
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends,APIRouter
 from src.app.database_requests import *
 from pydantic import BaseModel
 
@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 """
 PLATFORMS_CONF = [{"name": "telegram", "send_func": lambda x="hello from telegram!": print(
     x)}, {"name": "sdhf", "send_func": lambda x="hello from telegram!": print(x)}]
+
 
 
 async def initplatforms(platforms: list) -> None:
@@ -38,7 +39,6 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-
 
 async def check_platform(platform_name: str) -> PlatformDTO:
     """
