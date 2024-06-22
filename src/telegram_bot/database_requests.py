@@ -1,7 +1,7 @@
 from sqlalchemy import select
-from .models import TelegramUserORM
+from models import TelegramUserORM
 from src.database import session_factory
-from .schemes import TelegramUserDTO
+from schemes import TelegramUserDTO
 
 
 async def put_to_database_telegramuser(telegram_user_id: int, user_id: int, chat_id: int) -> None:

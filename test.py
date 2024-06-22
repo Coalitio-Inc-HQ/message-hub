@@ -1,11 +1,11 @@
 from src.database import session_factory
 from sqlalchemy import text, insert, delete
-from src.message.models import ChatORM, UserORM, MessageORM, ChatUsersORM, PlatformORM, ManadgerORM
+from src.app.models import ChatORM, UserORM, MessageORM, ChatUsersORM, PlatformORM, ManadgerORM
 from src.telegram_bot.models import TelegramUserORM
-from src.message.schemes import MessageDTO
+from src.app.schemes import MessageDTO
 
-from src.telegram_bot.database_requests import put_to_database_telegramuser, get_telegramuser_by_user_id_from_database, get_telegramuser_by_telegram_id_from_database
-from src.message.database_requests import platform_registration, create_user, create_chat, add_user_to_chat, save_messege, get_chats_by_user, get_messges_from_chat, create_menedger_user, create_user_from_bot
+from src.telegram_bot.database_requests import *
+from src.app.database_requests import *
 
 import asyncio
 
@@ -66,6 +66,8 @@ async def test_database_requests_from_massage():
     print(menedger)
     user_bot = await create_user_from_bot(platform_id=platform.id)
     print(user_bot)
+    platform_id = await get_platform_id_by_platform_name(platform.name)
+    print(platform_id)
 
 
 async def test():
@@ -76,4 +78,5 @@ async def test():
     await test_database_requests_from_tele_bot()
     await test_database_requests_from_massage()
 
+# asyncio.run(clear_db())
 asyncio.run(test())
