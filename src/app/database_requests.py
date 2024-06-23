@@ -1,7 +1,7 @@
-from sqlalchemy import select, insert, text, func, bindparam, update
-from .models import UserORM, ChatUsersORM, ChatORM, MessageORM, ManadgerORM, PlatformORM
+from sqlalchemy import select, insert, text, func, bindparam, update,delete
+from .models import UserORM, ChatUsersORM, ChatORM, MessageORM, UnconnectedChatWithBotORM, PlatformORM
 from src.database import session_factory
-from .schemes import ChatDTO, UserDTO, MessageDTO, ChatUsersDTO, ClientServerDTO, ManadgerDTO, PlatformDTO
+from .schemes import ChatDTO, UserDTO, MessageDTO, ChatUsersDTO, ClientServerDTO, UnconnectedChatWithBotDTO, PlatformDTO
 
 import datetime
 
@@ -139,19 +139,6 @@ async def get_users_by_chat_id(chat_id: int) -> list[UserDTO]:
             row, from_attributes=True) for row in res_orm]
         return res_dto
 
-async def create_menedger_user(platform_id: int) -> UserDTO:
-    """
-    Регестрирует нового пользователя с клиентсеого сервера, и добавлет его в списк распределения ботов.
-    Возаращяет: UserDTO(id,platform_id).
-    """
-    async with session_factory() as session:
-        cte = insert(UserORM).returning(UserORM.id.label("user_id")).values(platform_id=platform_id).cte()
-        cte_sel = select(cte,0)
-        stmt = insert(ManadgerORM).from_select(select=cte_sel,names=["user_id","number_of_linked_bots"]).returning(ManadgerORM.user_id)
-        res = await session.execute(stmt)
-        await session.commit()
-        return UserDTO(id=res.scalar(),  platform_id=platform_id)
-
 """
 temp
 """
@@ -162,13 +149,22 @@ async def create_user_from_bot(platform_id: int) -> ChatUsersDTO:
     Возвращяет: ChatUsersDTO(user.id,chat.id).
     """
     async with session_factory() as session:
-        user_id = (await session.execute(insert(UserORM).returning(UserORM.id).values(platform_id=platform_id))).scalar()
-        min_bots = select(
-            func.min(ManadgerORM.number_of_linked_bots)).scalar_subquery()
-        manadger = (await session.execute(select(ManadgerORM).where(ManadgerORM.number_of_linked_bots == min_bots))).scalar()
-        chat_id = (await session.execute(insert(ChatORM).returning(ChatORM.id).values(name=str(user_id), creator=manadger.user_id))).scalar()
-        manadger.number_of_linked_bots = manadger.number_of_linked_bots+1
-        await session.execute(insert(ChatUsersORM), [{"user_id": user_id, "chat_id": chat_id}, {"user_id": manadger.user_id, "chat_id": chat_id}])
-
+        bot_id =(await session.execute( insert(UserORM).returning(UserORM.id).values(platform_id=platform_id))).scalar()
+        chat_id =(await session.execute( insert(ChatORM).returning(ChatORM.id).values(name=bot_id.__str__(),creator = bot_id))).scalar()
+        await session.execute(insert(UnconnectedChatWithBotORM).values(chat_id=chat_id))
+        await session.execute(insert(ChatUsersORM).values(user_id=bot_id,chat_id=chat_id))
         await session.commit()
-        return ChatUsersDTO(user_id=user_id, chat_id=chat_id)
+        return ChatUsersDTO(user_id=bot_id, chat_id=chat_id)
+
+
+
+async def connecting_to_chat_with_a_bot(user_id: int,chat_id) -> ChatUsersDTO:
+    """
+    Присоеденяет к чату с ботом.
+    Возаращяет: UserDTO(id,platform_id).
+    """
+    async with session_factory() as session:
+        await session.execute(delete(UnconnectedChatWithBotORM).where(UnconnectedChatWithBotORM.chat_id==chat_id))
+        await session.execute(insert(ChatUsersORM).values(user_id=user_id,chat_id=chat_id))
+        await session.commit()
+        return ChatUsersDTO(user_id=user_id,chat_id=chat_id)

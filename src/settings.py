@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
     DB_ECHO: bool
+    CHAT_ECHO:bool
 
     @property
     def DATABASE_URL_ASINC(self):

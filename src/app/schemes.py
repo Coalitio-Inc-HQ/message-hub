@@ -18,9 +18,8 @@ class UserDTO(BaseModel):
     platform_id: int
 
 
-class ManadgerDTO(BaseModel):
-    user_id: int
-    number_of_linked_bots: int
+class UnconnectedChatWithBotDTO(BaseModel):
+    chat_id: int
 
 
 class ChatUsersDTO(BaseModel):
