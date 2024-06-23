@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  db:
+    image: postgres:16
+    container_name: db_app
+    command: -p 5430
+    expose:
+      - 5430
+    env_file:
+      - .env-non
+    ports:
+      - 5430:5430
+  
+  app:
+    build:
+      context: .
+    env_file:
+      - .env-non
+    container_name: app
+    command: ["/app/app.sh"]
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    
