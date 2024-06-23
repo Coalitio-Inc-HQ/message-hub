@@ -81,3 +81,4 @@ async def sending_messages(message: MessageDTO):
                 if plat["id"] == user.platform_id:
                     await plat["send_func"](user.id,message)
 
+
