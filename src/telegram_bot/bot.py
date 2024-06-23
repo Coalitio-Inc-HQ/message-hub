@@ -11,8 +11,11 @@ from aiogram.types import Message
 from pydantic import BaseModel, Field, HttpUrl
 
 from .config_reader import config
-from src.app.schemes import MessageDTO
+from src.app.schemes import *
 
+from src.telegram_bot.database_requests import *
+
+import datetime
 
 class CommandUrlDTO(BaseModel):
     command: str = Field(..., description="Команда бота")
@@ -21,10 +24,10 @@ class CommandUrlDTO(BaseModel):
 
 # Определение команд и URL в виде списка Pydantic-моделей
 COMMAND_URLS = [
-    CommandUrlDTO(command='/register_server',
-                  url='http://127.0.0.1:8000/platform_registration'),
     CommandUrlDTO(command='/register_user',
-                  url='http://127.0.0.1:8000/create_user_from_bot')
+                  url='http://127.0.0.1:8000/bot/create_user_from_bot'),
+    CommandUrlDTO(command='/send_messge',
+                  url='http://127.0.0.1:8000/bot/send_messge')
 ]
 
 # Включаем логирование, чтобы не пропустить важные сообщения
@@ -44,63 +47,62 @@ register_user_router = Router()
 text_router = Router()
 
 
-@register_router.message(Command("register_server"))
-async def register_server_command(message: Message):
-    """
-        Обрабатывает команду /register_server
-    """
-    print(message.text)
-    command_url = next(
-        (cmd.url for cmd in COMMAND_URLS if cmd.command == '/register_server'), None)
-    print(command_url)
-    await forward_message_to_fastapi(message.text, command_url)
-    await message.answer("registration")
-
-
-@register_user_router.message(Command('register_user'))
+@register_user_router.message(Command('register_user'))  # start?
 async def register_user_command(message: Message):
     """
         Обрабатывает команду /register_user
     """
-    print(message.text)
     command_url = next(
         (cmd.url for cmd in COMMAND_URLS if cmd.command == '/register_user'), None)
-    print(command_url)
-    await forward_message_to_fastapi(message.text, command_url)
-    await message.answer("register user")
 
-
-@text_router.message(F)
-async def message_with_text(message: Message):
-    print(message.text)
-    await message.answer("Это текстовое сообщение")
-
-
-async def forward_message_to_fastapi(message: MessageDTO, command_url: HttpUrl) -> bool:
-    """
-        Функция, отправляющая запрос в FastAPI
-        :params message: MessageDTO, command: CommandUrlDTO
-        :returns: bool
-    """
-    params = {"platform_name": config.platform_name, "message": message}
-    headers = {"Content-Type": "application/json"}
+    user = None
 
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.post(command_url.__str__(), params=params, headers=headers) as response:
+            async with session.post(command_url.__str__(), params={"platform_name": "telegram"}, headers={"Content-Type": "application/json"}) as response:
                 response.raise_for_status()
-                print(await response.text())
-                return True
+                user = ChatUsersDTO.model_validate_json(await response.text())
         except aiohttp.ClientResponseError as e:
             print(f"Error: {e}")
         except aiohttp.ClientError as e:
             print(f"Error: {e}")
 
+    if user:
+        await put_to_database_telegramuser(message.chat.id, user.user_id, user.chat_id)
+
+    await message.answer("register user")
+
+
+@text_router.message(F)
+async def message_with_text(message: Message):
+    command_url = next(
+        (cmd.url for cmd in COMMAND_URLS if cmd.command == '/send_messge'), None)
+
+    db_data = await get_telegramuser_by_telegram_id_from_database(telegram_user_id=message.chat.id)
+
+    created_at = message.date.astimezone(
+        datetime.timezone.utc)
+    edit_at = message.date.astimezone(datetime.timezone.utc)
+
+    print(created_at)
+    print(date_time_convert(created_at))
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(command_url.__str__(), json={"chat_id": db_data.chat_id.__str__(), "creator": db_data.user_id.__str__(), "created_at": date_time_convert(created_at.replace(tzinfo=None)), "edit_at": date_time_convert( edit_at.replace(tzinfo=None)), "text_message": message.text}, headers={"Content-Type": "application/json"}) as response:
+                response.raise_for_status()
+        except aiohttp.ClientResponseError as e:
+            print(f"Error: {e}")
+        except aiohttp.ClientError as e:
+            print(f"Error: {e}")
+
+def date_time_convert(t:datetime.datetime)->str:
+    return f"{t.year:04}-{t.month:02}-{t.day:02}T{t.hour:02}:{t.minute:02}:{t.second:02}.{t.microsecond:03}Z"
 
 async def start_bot(bot_instance: Bot):
     dp.include_routers(register_router, register_user_router, text_router)
     await dp.start_polling(bot_instance)
 
-
-if __name__ == '__main__':
-    asyncio.run(start_bot(bot))
+async def sent_message_to_user(user_id:int,message:MessageDTO):
+    db_data = await get_telegramuser_by_user_id_from_database(user_id=user_id)
+    await bot.send_message(db_data.telegram_user_id, message.text_message)

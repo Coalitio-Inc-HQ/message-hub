@@ -6,11 +6,12 @@ from pydantic import BaseModel
 
 from contextlib import asynccontextmanager
 
+from src.telegram_bot.bot import sent_message_to_user as telegram_sent_message_to_user
 """
 Обслуживаемые платформы.
 """
-PLATFORMS_CONF = [{"name": "telegram", "send_func": lambda x="hello from telegram!": print(
-    x)}, {"name": "sdhf", "send_func": lambda x="hello from telegram!": print(x)}]
+PLATFORMS_CONF = [{"name": "telegram", "send_func": telegram_sent_message_to_user}
+                  , {"name": "sdhf", "send_func": lambda user_id,message: print(user_id)}]
 
 
 
@@ -75,16 +76,5 @@ async def sending_messages(messge: MessageDTO):
     for user in users:
         for plat in PLATFORMS_CONF:
             if plat["id"] == user.platform_id:
-                plat["send_func"]()
+                await plat["send_func"](user.id,messge)
 
-
-async def send_message(message):
-    await bot.send_message(542769621312, message)
-
-
-# def main():
-#     asyncio.run(send_message('hi'))
-
-@app.get("/")
-async def test():
-    await send_message("hi")
