@@ -47,7 +47,8 @@ register_user_router = Router()
 text_router = Router()
 
 
-@register_user_router.message(Command('register_user'))  # start?
+
+@register_user_router.message(Command('start')) 
 async def register_user_command(message: Message):
     """
         Обрабатывает команду /register_user

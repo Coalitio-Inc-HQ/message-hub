@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException, Depends,APIRouter
 from src.app.database_requests import *
 from pydantic import BaseModel
 
+from .settings import settings
+
 from contextlib import asynccontextmanager
 
 from src.telegram_bot.bot import sent_message_to_user as telegram_sent_message_to_user
@@ -62,19 +64,21 @@ async def create_user_by_bot(platform: PlatformDTO = Depends(check_platform)):
 
 
 @app.post("/bot/send_messge")
-async def send_messge_from_bot(messge: MessageDTO):
+async def send_messge_from_bot(message: MessageDTO):
     """
     Принемает сообщение отправленное с бота.
     """
-    messge = await save_messege(message=messge)
-    await sending_messages(messge=messge)
+    message = await save_messege(message=message)
+    await sending_messages(message=message)
     return {"status": "ok"}
 
 
-async def sending_messages(messge: MessageDTO):
-    users = await get_users_by_chat_id(messge.chat_id)
+async def sending_messages(message: MessageDTO):
+    users = await get_users_by_chat_id(message.chat_id)
     for user in users:
-        for plat in PLATFORMS_CONF:
-            if plat["id"] == user.platform_id:
-                await plat["send_func"](user.id,messge)
+        if (not user.id == message.creator) or settings.CHAT_ECHO:
+            for plat in PLATFORMS_CONF:
+                if plat["id"] == user.platform_id:
+                    await plat["send_func"](user.id,message)
+
 

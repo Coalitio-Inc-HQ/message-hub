@@ -20,11 +20,9 @@ class UserORM(Base):
     platform_id: Mapped[int] = mapped_column(ForeignKey("platform.id"))
 
 
-class ManadgerORM(Base):
-    __tablename__ = "manadger"
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.id"), primary_key=True)
-    number_of_linked_bots: Mapped[int]
+class UnconnectedChatWithBotORM(Base):
+    __tablename__ = "unconnected_chat_with_bot"
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id"),primary_key=True)
 
 
 class ChatUsersORM(Base):

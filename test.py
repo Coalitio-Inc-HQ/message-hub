@@ -1,6 +1,6 @@
 from src.database import session_factory
 from sqlalchemy import text, insert, delete
-from src.app.models import ChatORM, UserORM, MessageORM, ChatUsersORM, PlatformORM, ManadgerORM
+from src.app.models import ChatORM, UserORM, MessageORM, ChatUsersORM, PlatformORM, UnconnectedChatWithBotORM
 from src.telegram_bot.models import TelegramUserORM
 from src.app.schemes import MessageDTO
 
@@ -21,8 +21,8 @@ async def clear_db():
 
         await session.execute(delete(MessageORM))
         await session.execute(delete(ChatUsersORM))
+        await session.execute(delete(UnconnectedChatWithBotORM))
         await session.execute(delete(ChatORM))
-        await session.execute(delete(ManadgerORM))
         await session.execute(delete(UserORM))
         await session.execute(delete(PlatformORM))
 
@@ -78,13 +78,17 @@ async def test_database_requests_from_massage():
     for msg in messges:
         print(msg)
     
-    print("create_menedger_user")
-    menedger = await create_menedger_user(platform_id=platform.id)
-    print(menedger)
-
     print("create_user_from_bot")
     user_bot = await create_user_from_bot(platform_id=platform.id)
     print(user_bot)
+
+    print("create_user_from_bot")
+    user_bot1 = await create_user_from_bot(platform_id=platform.id)
+    print(user_bot1)
+
+    print("connecting_to_chat_with_a_bot")
+    conn_bot = await connecting_to_chat_with_a_bot(user_id=user.id,chat_id=user_bot1.chat_id)
+    print(conn_bot)
 
     print("get_platform_by_platform_name")
     platform = await get_platform_by_platform_name(platform.name)
@@ -103,6 +107,8 @@ async def test_database_requests_from_massage():
     users_from_chat = await get_users_by_chat_id(chat_id=chat.id)
     for row in users_from_chat:
         print(row)
+
+    await clear_db()
 
 
 async def test():
